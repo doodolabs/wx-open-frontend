@@ -1,7 +1,9 @@
 import {useEffect, useState} from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { FullscreenExitIcon, FullscreenIcon } from 'tdesign-icons-react'
 import { Menu } from 'tdesign-react/'
-import {routes} from "../Console";
+import {routes} from "../../config/route";
+
 const {SubMenu, MenuItem} = Menu;
 
 interface IProps {
@@ -23,35 +25,26 @@ export default function MyMenu(props: IProps) {
 
     const [activePath, setActivePath] = useState<string | number>('')
     const [expandsMenu, setExpandsMenu] = useState<Array<string | number>>([])
+    const [collapsed, setCollapsed] = useState(false)
     const navigate = useNavigate()
     const location = useLocation()
 
     useEffect(() => {
         if (location.pathname === activePath) return
         // 没想到太好的解法只能先这样写了
-        switch (location.pathname) {
-            case routes.thirdToken.path: {
-                setActivePath(routes.thirdToken.showPath)
-                break
-            }
-            case routes.thirdMessage.path: {
-                setActivePath(routes.thirdMessage.showPath)
-                break
-            }
-            default: {
-                setActivePath(location.pathname)
+        const keys = Object.keys(routes)
+        for (let i = 0; i < keys.length; i++) {
+            // @ts-ignore
+            if (routes[keys[i]].path === location.pathname) {
+                // @ts-ignore
+                setActivePath(routes[keys[i]].showPath ?? location.pathname)
+                return;
             }
         }
     }, [location.pathname])
 
     const changePath = (path: string | number) => {
         path = String(path)
-        if (path.includes('->')) {
-            const [showPath, realPath] = path.split('->')
-            setActivePath(showPath)
-            navigate(realPath)
-            return
-        }
         setActivePath(path)
         navigate(path)
     }
@@ -59,13 +52,15 @@ export default function MyMenu(props: IProps) {
     return (
         <Menu
             theme="dark"
+            collapsed={collapsed}
             value={activePath}
             expandMutex={false}
             expanded={expandsMenu}
             onExpand={(values) => setExpandsMenu(values)}
             onChange={changePath}
             style={{height: '100%'}}
-            logo={<h3 style={{margin: '0 auto', color: 'white'}}>服务商微管家</h3>}
+            operations={collapsed ? <FullscreenIcon className="t-menu__operations-icon" onClick={() => setCollapsed(!collapsed)} /> : <FullscreenExitIcon className="t-menu__operations-icon" onClick={() => setCollapsed(!collapsed)} />}
+            logo={<h3 style={{margin: '0 auto', color: 'white'}}>{collapsed ? '' : '服务商微管家'}</h3>}
         >
             {
                 (menuList || []).map((i, index) => {
@@ -75,7 +70,7 @@ export default function MyMenu(props: IProps) {
                                 {
                                     (i.item || []).map(item => {
                                         return (
-                                            <MenuItem key={`menu_item_${item.path}`} value={item.showPath ? `${item.showPath}->${item.path}` : item.path}>
+                                            <MenuItem key={`menu_item_${item.path}`} value={item.path}>
                                                 {item.label}
                                             </MenuItem>
                                         )

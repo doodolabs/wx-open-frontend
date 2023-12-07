@@ -7,6 +7,15 @@ a {
     color: #48a6ea;
     cursor: pointer;
 }
+.custom-a{
+    color: #48a6ea;
+    cursor: pointer;
+}
+
+ul {
+    padding-left: 0;
+    margin: 0;
+}
 
 .desc {
     font-size: 14px;
@@ -16,6 +25,7 @@ a {
 
 .text {
     font-size: 18px;
+    margin-top: 0;
     color: rgba(0,0,0,0.9);
 }
 
@@ -36,4 +46,19 @@ a {
     border-radius: 50%;
     background-color: #48a6ea;
     margin-right: 10px;
+}
+
+// 上传组件莫名其妙有个cancel按钮，但是作用又很奇怪，没留出props来隐藏，只能这样hard code下了
+.t-upload__flow-file-flow .t-upload__flow-bottom{
+    display: none;
+}
+
+.t-upload__flow-table .t-upload__flow-empty{
+    display: none;
+}
+.t-loading__parent{
+    width: 100%;
+}
+.t-col{
+    word-wrap: break-word;
 }

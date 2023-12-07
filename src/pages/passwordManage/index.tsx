@@ -1,14 +1,14 @@
 import styles from './index.module.less'
-import {MessagePlugin, Dialog, Input} from "tdesign-react";
-import {get, post} from "../../utils/axios";
+import { MessagePlugin, Dialog, Input } from "tdesign-react";
+import { request } from "../../utils/axios";
 import {
-    changePasswordUrl,
-    changeUserNameUrl,
-    getComponentInfoUrl,
-    getSecretUrl,
-    setSecretUrl
+    changePasswordRequest,
+    changeUserNameRequest,
+    getComponentInfoRequest,
+    getSecretRequest,
+    setSecretRequest
 } from "../../utils/apis";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import md5 from 'js-md5';
 
 export default function PasswordManage() {
@@ -31,15 +31,15 @@ export default function PasswordManage() {
     }, [])
 
     const getSomeInfo = async () => {
-        const resp = await get({
-            url: getComponentInfoUrl
+        const resp = await request({
+            request: getComponentInfoRequest
         })
         if (resp.code === 0) {
             setComponentAppId(resp.data.appid)
         }
 
-        const resp2 = await get({
-            url: getSecretUrl
+        const resp2 = await request({
+            request: getSecretRequest
         })
         if (resp2.code === 0) {
             setSecret(resp2.data.secret)
@@ -50,8 +50,8 @@ export default function PasswordManage() {
         if (!secretInput) {
             return MessagePlugin.error('有信息未输入', 2000)
         }
-        const resp = await post({
-            url: setSecretUrl,
+        const resp = await request({
+            request: setSecretRequest,
             data: {
                 secret: secretInput
             }
@@ -68,8 +68,8 @@ export default function PasswordManage() {
         if (!usernameInput) {
             return MessagePlugin.error('有信息未输入', 2000)
         }
-        const resp = await post({
-            url: changeUserNameUrl,
+        const resp = await request({
+            request: changeUserNameRequest,
             data: {
                 username: usernameInput
             }
@@ -96,8 +96,8 @@ export default function PasswordManage() {
         if (!(/^[\w!@#$%^&*()+.]{6,10}$/.test(String(passwordInput)))) {
             return MessagePlugin.error('密码不符合要求', 2000)
         }
-        const resp = await post({
-            url: changePasswordUrl,
+        const resp = await request({
+            request: changePasswordRequest,
             data: {
                 password: md5(String(passwordInput)),
                 oldPassword: md5(String(oldPasswordInput)),
@@ -118,27 +118,27 @@ export default function PasswordManage() {
             <p className="desc">第三方平台 Secret 补充完整后可使用该平台完整功能；且 Secret 在第三方平台重置后，需要及时修改，否则会影响功能使用</p>
             <div className={styles.line} />
             <div className="normal_flex">
-                <p style={{width: '100px'}}>第三方 AppID</p>
-                <p style={{marginRight: '20px'}} className="desc">{componentAppId}</p>
+                <p style={{ width: '100px' }}>第三方 AppID</p>
+                <p style={{ marginRight: '20px' }} className="desc">{componentAppId}</p>
             </div>
             <div className="normal_flex">
-                <p style={{width: '100px'}}>第三方 Secret</p>
-                <p style={{marginRight: '20px'}} className="desc">{secret ? `${secret.slice(0,5)}***********${secret.slice(secret.length - 4, secret.length)}` : ''}</p>
-                <a style={{marginRight: '20px'}} className="a" onClick={() => setShowSecretModal(true)}>修改</a>
+                <p style={{ width: '100px' }}>第三方 Secret</p>
+                <p style={{ marginRight: '20px' }} className="desc">{secret ? `${secret.slice(0, 5)}***********${secret.slice(secret.length - 4, secret.length)}` : ''}</p>
+                <a style={{ marginRight: '20px' }} className="a" onClick={() => setShowSecretModal(true)}>修改</a>
             </div>
 
-            <p style={{marginTop: '40px'}} className="text">修改帐号和密码</p>
-            <p className="desc">修改帐号和密码后，使用新的帐号和密码才可登录该系统，请谨慎操作。此外，如需修改数据库密码可前往<a href="https://cloud.weixin.qq.com/clourun?utm_source=Third-party-Platform" target="_blank" className="a">微信云托管</a>进行操作</p>
+            <p style={{ marginTop: '40px' }} className="text">修改帐号和密码</p>
+            <p className="desc">修改帐号和密码后，使用新的帐号和密码才可登录该系统，请谨慎操作。</p>
             <div className={styles.line} />
             <div className="normal_flex">
-                <p style={{width: '100px'}}>登录帐号</p>
-                <p style={{marginRight: '20px'}} className="desc">{username}</p>
-                <a style={{marginRight: '20px'}} className="a" onClick={() => setShowUsernameModal(true)}>修改帐号</a>
+                <p style={{ width: '100px' }}>登录帐号</p>
+                <p style={{ marginRight: '20px' }} className="desc">{username}</p>
+                <a style={{ marginRight: '20px' }} className="a" onClick={() => setShowUsernameModal(true)}>修改帐号</a>
             </div>
             <div className="normal_flex">
-                <p style={{width: '100px'}}>登录密码</p>
-                <p style={{marginRight: '20px'}} className="desc">***************</p>
-                <a style={{marginRight: '20px'}} className="a" onClick={() => setShowPasswordModal(true)}>修改密码</a>
+                <p style={{ width: '100px' }}>登录密码</p>
+                <p style={{ marginRight: '20px' }} className="desc">***************</p>
+                <a style={{ marginRight: '20px' }} className="a" onClick={() => setShowPasswordModal(true)}>修改密码</a>
             </div>
 
             <Dialog visible={showSecretModal} onClose={() => setShowSecretModal(false)} onConfirm={handleChangeSecret} header="修改 Secret">

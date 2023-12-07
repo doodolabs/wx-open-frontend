@@ -2,11 +2,11 @@ import {useState} from 'react'
 import styles from './index.module.less'
 import {Table, Button, PopConfirm} from 'tdesign-react';
 import {PrimaryTableCol} from "tdesign-react/es/table/type";
-import {get} from "../../utils/axios";
-import {getComponentTokenUrl, getTicketUrl} from "../../utils/apis";
+import {request} from "../../../utils/axios";
+import {getComponentTokenRequest, getTicketRequest} from "../../../utils/apis";
 import moment from "moment";
-import {copyMessage} from "../../utils/common";
-import {routes} from "../../components/Console";
+import {copyMessage} from "../../../utils/common";
+import {routes} from "../../../config/route";
 
 const componentTokenColumn: PrimaryTableCol[] = [{
     align: 'left',
@@ -26,6 +26,7 @@ const componentTokenColumn: PrimaryTableCol[] = [{
     className: 'row',
     colKey: 'expiresTime',
     title: '过期时间',
+    render: ({ row }) => moment(row.expiresTime).format('YYYY-MM-DD HH:mm:ss')
 }, {
     align: 'center',
     width: 100,
@@ -75,8 +76,8 @@ export default function ThirdToken() {
 
     const getComponentVerifyTicket = async () => {
         setIsTicketLoading(true)
-        const resp = await get({
-            url: getTicketUrl
+        const resp = await request({
+            request: getTicketRequest
         })
         if (resp.code === 0) {
             setTicket([{
@@ -88,8 +89,8 @@ export default function ThirdToken() {
 
     const getComponentToken = async () => {
         setIsComponentTokenLoading(true)
-        const resp = await get({
-            url: getComponentTokenUrl
+        const resp = await request({
+            request: getComponentTokenRequest
         })
         if (resp.code === 0) {
             setComponentToken([{
@@ -106,7 +107,7 @@ export default function ThirdToken() {
             <p className="text">component_verify_ticket 介绍</p>
             <div className="normal_flex">
                 <div className="blue_circle" />
-                <p className="desc">获取 component_verify_ticket 后可通过接口或者通过下方的功能生成 component_access_token。更多介绍可前往查看<a href="https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/ThirdParty/token/component_verify_ticket.html" target="_blank" className="a">官方文档</a></p>
+                <p className="desc" style={{ margin: 0 }}>获取 component_verify_ticket 后可通过接口或者通过下方的功能生成 component_access_token。更多介绍可前往查看<a href="https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/ThirdParty/token/component_verify_ticket.html" target="_blank" className="a">官方文档</a></p>
             </div>
             <div className="normal_flex">
                 <div className="blue_circle" />
@@ -121,7 +122,7 @@ export default function ThirdToken() {
                 rowKey="ticket"
                 tableLayout="auto"
                 verticalAlign="middle"
-                size="small"// 与pagination对齐
+                size="small"
             />
 
             <p style={{marginTop: '40px'}} className="text">component_access_token 介绍</p>
@@ -144,7 +145,7 @@ export default function ThirdToken() {
                 rowKey="componentToken"
                 tableLayout="auto"
                 verticalAlign="middle"
-                size="small"// 与pagination对齐
+                size="small"
             />
 
         </div>

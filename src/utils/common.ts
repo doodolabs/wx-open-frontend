@@ -1,6 +1,8 @@
-import {MessagePlugin} from "tdesign-react";
+import { MessagePlugin } from "tdesign-react";
 
+// TODO: ie的复制有问题，要看下啥报错，然后对应提示下用chrome
 export const copyMessage = (msg: string) => {
+    console.log(msg)
     navigator.clipboard.writeText(msg).then(() => {
         MessagePlugin.success('复制成功', 2000)
     }).catch(() => {
@@ -17,4 +19,12 @@ export const copyMessage = (msg: string) => {
             document.execCommand('copy') ? MessagePlugin.success('复制成功', 2000) : MessagePlugin.error(`当前浏览器不支持复制该文本，请手动复制: ${msg}`, 10000);
         }, 0)
     })
+}
+
+export const objToQueryString = (obj: Object) => {
+    let str = ''
+    Object.entries(obj).forEach(([key, value]) => {
+        str += `${encodeURIComponent(key)}=${encodeURIComponent(value)}&`;
+    });
+    return str
 }

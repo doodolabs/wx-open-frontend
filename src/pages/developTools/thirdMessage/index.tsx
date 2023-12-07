@@ -1,10 +1,10 @@
 import styles from './index.module.less'
 import { Tabs, Button, DatePicker, Table, Input, MessagePlugin } from 'tdesign-react';
-import {PrimaryTableCol} from "tdesign-react/es/table/type";
-import {useEffect, useState} from "react";
+import { PrimaryTableCol } from "tdesign-react/es/table/type";
+import { useEffect, useState } from "react";
 import moment from 'moment'
-import {get} from "../../utils/axios";
-import {getAuthMessageUrl, getMessageConfigUrl, getNormalMessageUrl} from "../../utils/apis";
+import { request } from "../../../utils/axios";
+import { getAuthMessageRequest, getMessageConfigRequest, getNormalMessageRequest } from "../../../utils/apis";
 
 const { TabPanel } = Tabs;
 
@@ -102,6 +102,8 @@ export default function ThirdMessage() {
 
     const pageSize = 15
 
+    const defaultTime: [string, string] = [moment().startOf('day').format('YYYY-MM-DD HH:mm:ss'), moment().endOf('day').format('YYYY-MM-DD HH:mm:ss')]
+
     const [selectedTab, setSelectedTab] = useState<string | number>(tabs[0].value)
     const [isTableLoading, setIsTableLoading] = useState<boolean>(false)
 
@@ -115,18 +117,16 @@ export default function ThirdMessage() {
     const [normalDataTotal, setNormalDataTotal] = useState(0)
 
     const [infoTypeInput, setInfoTypeInput] = useState('')
-    const [authTimeInput, setAuthTimeInput] = useState<[string, string]>(['', ''])
+    const [authTimeInput, setAuthTimeInput] = useState<[string, string]>(defaultTime)
 
     const [msgTypeInput, setMsgTypeInput] = useState('')
     const [eventInput, setEventInput] = useState('')
-    const [toUserNameInput, setToUserNameInput] = useState('')
-    const [normalTimeInput, setNormalTimeInput] = useState<[string, string]>(['', ''])
+    const [appIdInput, setAppIdInput] = useState('')
+    const [normalTimeInput, setNormalTimeInput] = useState<[string, string]>(defaultTime)
 
     const [messageConfig, setMessageConfig] = useState({
         bizPath: "",
         componentPath: "",
-        envId: "",
-        service: "",
         textMode: ""
     })
 
@@ -134,18 +134,22 @@ export default function ThirdMessage() {
         getMessageConfig()
     }, [])
 
+    useEffect(() => {
+        getTableData()
+    }, [authPage, normalPage])
+
     const initParams = () => {
         setInfoTypeInput('')
-        setAuthTimeInput(['', ''])
+        setAuthTimeInput(defaultTime)
         setMsgTypeInput('')
         setEventInput('')
-        setToUserNameInput('')
-        setNormalTimeInput(['', ''])
+        setAppIdInput('')
+        setNormalTimeInput(defaultTime)
     }
 
     const getMessageConfig = async () => {
-        const resp = await get({
-            url: getMessageConfigUrl
+        const resp = await request({
+            request: getMessageConfigRequest
         })
         if (resp.code === 0) {
             setMessageConfig(resp.data)
@@ -155,6 +159,7 @@ export default function ThirdMessage() {
     const changeTabs = (val: string | number) => {
         setSelectedTab(val)
         initParams()
+        getTableData()
     }
 
     const getTableData = async () => {
@@ -165,8 +170,15 @@ export default function ThirdMessage() {
                     MessagePlugin.error('请选择推送时间范围', 2000)
                     break;
                 }
-                const resp = await get({
-                    url: `${getAuthMessageUrl}?infoType=${infoTypeInput}&limit=${pageSize}&offset=${(authPage -1) * pageSize}&startTime=${moment(authTimeInput[0]).valueOf() / 1000}&endTime=${moment(authTimeInput[1]).valueOf() / 1000}`
+                const resp = await request({
+                    request: getAuthMessageRequest,
+                    data: {
+                        infoType: infoTypeInput,
+                        limit: pageSize,
+                        offset: (authPage - 1) * pageSize,
+                        startTime: moment(authTimeInput[0]).valueOf() / 1000,
+                        endTime: parseInt(String(moment(authTimeInput[1]).endOf('day').valueOf() / 1000))
+                    }
                 })
                 if (resp.code === 0) {
                     setAuthData(resp.data.records)
@@ -179,8 +191,17 @@ export default function ThirdMessage() {
                     MessagePlugin.error('请选择推送时间范围', 2000)
                     break;
                 }
-                const resp = await get({
-                    url: `${getNormalMessageUrl}?appid=${toUserNameInput}&event=${eventInput}&msgType=${msgTypeInput}&limit=${pageSize}&offset=${(authPage -1) * pageSize}&startTime=${moment(normalTimeInput[0]).valueOf() / 1000}&endTime=${moment(normalTimeInput[1]).valueOf() / 1000}`
+                const resp = await request({
+                    request: getNormalMessageRequest,
+                    data: {
+                        appid: appIdInput,
+                        event: eventInput,
+                        msgType: msgTypeInput,
+                        limit: pageSize,
+                        offset: (authPage - 1) * pageSize,
+                        startTime: moment(normalTimeInput[0]).valueOf() / 1000,
+                        endTime: moment(normalTimeInput[1]).valueOf() / 1000
+                    }
                 })
                 if (resp.code === 0) {
                     setNormalData(resp.data.records)
@@ -202,8 +223,6 @@ export default function ThirdMessage() {
                 <div style={{ width: '45%' }}>
                     <p className="text">授权事件 URL 配置</p>
                     <div className={styles.setting_box}>
-                        <p className={styles.setting_box_text}>环境ID：{messageConfig.envId}</p>
-                        <p className={styles.setting_box_text}>服务名称：{messageConfig.service}</p>
                         <p className={styles.setting_box_text}>消息格式：{messageConfig.textMode}</p>
                         <p className={styles.setting_box_text}>业务路径：{messageConfig.componentPath}</p>
                     </div>
@@ -211,8 +230,6 @@ export default function ThirdMessage() {
                 <div style={{ width: '45%' }}>
                     <p className="text">消息与事件 URL 配置</p>
                     <div className={styles.setting_box}>
-                        <p className={styles.setting_box_text}>环境ID：{messageConfig.envId}</p>
-                        <p className={styles.setting_box_text}>服务名称：{messageConfig.service}</p>
                         <p className={styles.setting_box_text}>消息格式：{messageConfig.textMode}</p>
                         <p className={styles.setting_box_text}>业务路径：{messageConfig.bizPath}</p>
                     </div>
@@ -229,7 +246,7 @@ export default function ThirdMessage() {
                         </div>
                         <div className="normal_flex">
                             <p style={{ marginRight: '20px' }}>推送时间</p>
-                            <DatePicker placeholder="必填，需选择日期，否则无法查询" style={{ width: '340px', marginRight: '20px' }} mode="date" onChange={(val: any) => setAuthTimeInput(val)} enableTimePicker range />
+                            <DatePicker value={authTimeInput} placeholder="必填，需选择日期，否则无法查询" style={{ width: '340px', marginRight: '20px' }} mode="date" onChange={(val: any) => setAuthTimeInput(val)} range />
                         </div>
                         <Button onClick={getTableData}>查询</Button>
                     </div>
@@ -247,28 +264,28 @@ export default function ThirdMessage() {
                             pageSize,
                             total: authDataTotal,
                             current: authPage,
-                            showJumper: true,
-                            onCurrentChange:(current) => setAuthPage(current),
+                            pageSizeOptions: [15],
+                            onCurrentChange: (current) => setAuthPage(current),
                         }}
                     />
                 </TabPanel>
                 <TabPanel value={tabs[1].value} label={tabs[1].label}>
                     <div className="normal_flex" style={{ margin: '10px 0' }}>
                         <div className="normal_flex">
-                            <p style={{ marginRight: '20px' }}>MsgType</p>
+                            <p style={{ marginRight: '10px' }}>MsgType</p>
                             <Input value={msgTypeInput} onChange={(val) => setMsgTypeInput(val as string)} clearable style={{ width: '120px', marginRight: '20px' }} />
                         </div>
                         <div className="normal_flex">
-                            <p style={{ marginRight: '20px' }}>Event</p>
+                            <p style={{ marginRight: '10px' }}>Event</p>
                             <Input value={eventInput} onChange={(val) => setEventInput(val as string)} clearable style={{ width: '120px', marginRight: '20px' }} />
                         </div>
                         <div className="normal_flex">
-                            <p style={{ marginRight: '20px' }}>ToUserName</p>
-                            <Input value={toUserNameInput} onChange={(val) => setToUserNameInput(val as string)} clearable style={{ width: '140px', marginRight: '20px' }} />
+                            <p style={{ marginRight: '10px' }}>AppId</p>
+                            <Input value={appIdInput} onChange={(val) => setAppIdInput(val as string)} clearable style={{ width: '140px', marginRight: '20px' }} />
                         </div>
                         <div className="normal_flex">
-                            <p style={{ marginRight: '20px' }}>推送时间</p>
-                            <DatePicker placeholder="必填，需选择日期，否则无法查询" style={{ width: '340px', marginRight: '20px' }} mode="date" onChange={(val: any) => setNormalTimeInput(val)} enableTimePicker range />
+                            <p style={{ marginRight: '10px' }}>推送时间</p>
+                            <DatePicker value={normalTimeInput} placeholder="必填，需选择日期，否则无法查询" style={{ width: '340px', marginRight: '20px' }} mode="date" onChange={(val: any) => setNormalTimeInput(val)} range />
                         </div>
                         <Button onClick={getTableData}>查询</Button>
                     </div>
@@ -286,8 +303,8 @@ export default function ThirdMessage() {
                             pageSize,
                             total: normalDataTotal,
                             current: normalPage,
-                            showJumper: true,
-                            onCurrentChange:(current) => setNormalPage(current),
+                            pageSizeOptions: [15],
+                            onCurrentChange: (current) => setNormalPage(current),
                         }}
                     />
                 </TabPanel>

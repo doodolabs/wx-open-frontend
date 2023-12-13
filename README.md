@@ -21,4 +21,5 @@ npm run dev
 npm run build
 ```
 ### 项目部署
-见项目 [wxcloudrun-wxcomponent](https://github.com/WeixinCloud/wxcloudrun-wxcomponent) README.md
+
+[wx-open 本地部署2](https://blog.11010.net/p/wx-open-coustom-frontend-page/)
